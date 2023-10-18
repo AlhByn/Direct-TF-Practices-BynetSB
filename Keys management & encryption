@@ -1,0 +1,41 @@
+AWS Architecture Diagram:
+
+              +-------------------+
+              |   Internet        |
+              |                   |
+              | +-------+ +-------+|
+              | |  ALB  | |  ALB  ||
+              | +-------+ +-------+|
+              |   |           |   |
+              |   v           v   |
+              | +-----+   +-----+ |
+              | |EKS  |   |EKS  | |
+              | |Web  |   |Comp | |
+              | |Layer|   |Layer| |
+              | +-----+   +-----+ |
+              |   |           |   |
+              |   v           v   |
+              | +-----+   +-----+ |
+              | | RDS |   |Dynamo| |
+              | |     |   |  DB  | |
+              | |     |   |      | |
+              | +-----+   +-----+ |
+              |                   |
+              | +-----+   +-----+ |
+              | | S3  |   |CloudH| |
+              | |     |   |  SM  | |
+              | +-----+   +-----+ |
+              +-------------------+
+
+List of Components:
+- TLS connection over the internet with Application Load Balancer (ALB) using public certificates from AWS Certificate Manager.
+- Traffic is terminated at Amazon Elastic Kubernetes Service (EKS).
+- Amazon RDS uses unique certificates for traffic encryption.
+- DynamoDB is encrypted by default.
+- S3 uses Server-Side Encryption with SSE-S3.
+- CloudHSM is encrypted by default.
+
+Cryptographic Keys Description:
+- Default encryption provided by AWS for some services.
+- Private keys are generated and stored on CloudHSM.
+- Public keys are imported to AWS Certificate Manager for use with the ALB.
