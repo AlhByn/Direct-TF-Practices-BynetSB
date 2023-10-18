@@ -1,0 +1,15 @@
+module "sg_compute_inbound" {
+  source = "terraform-aws-modules/security-group/aws"
+
+  name        = "compute-layer-sg-inbound"
+  description = "Security group for a Compute Layer"
+  vpc_id      = data.aws_vpc.compute_layer.id
+
+  ingress_cidr_blocks      = data.aws_vpc.public_layer.cidr;
+  ingress_with_source_security_group_id = [
+    {
+      rule                     = "https-443-tcp"
+      source_security_group_id = data.aws_security_group.public_layer.id
+    },
+  ]
+}
