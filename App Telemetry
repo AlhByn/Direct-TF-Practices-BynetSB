@@ -1,0 +1,13 @@
+Prometheus collects logs from EKS cluster and Grafana used to present them.
+For other services, CloudWatch metrics are generated and stored in a secure bucket.
+Usage of EKS Metrics:
+
+container_cpu_usage_seconds_total
+container_cpu_cfs_throttled_seconds_total
+container_memory_cache
+container_memory_rss 
+container_memory_swap
+container_memory_usage_bytes 
+container_memory_max_usage_bytes container_memory_working_set_bytes 
+container_memory_failcnt 
+container_memory_failures_total 
