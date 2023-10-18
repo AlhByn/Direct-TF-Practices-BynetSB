@@ -1,0 +1,171 @@
+provider "aws" {
+  region = "eu-west-1"  
+}
+
+# Define a VPC in the development/test environment
+
+resource "aws_vpc" "dev_test_vpc" {
+  cidr_block = "10.0.0.0/16"
+}
+
+# Create subnets in different AZs for development and test
+
+resource "aws_subnet" "dev_test_subnets" {
+  count         = 4  # For 2 AZs in development and 2 in test
+  vpc_id        = aws_vpc.dev_test_vpc.id
+  availability_zone = element(["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"], count.index)
+  cidr_block    = cidrsubnet(aws_vpc.dev_test_vpc.cidr_block, 4, count.index)
+}
+
+# Define a VPC for the production environment spanning multiple AZs
+
+resource "aws_vpc" "production_vpc" {
+  cidr_block = "10.1.0.0/16"
+}
+
+# Create subnets in different AZs for the production environment
+
+resource "aws_subnet" "production_subnets" {
+  count         = 4  # For 4 different AZs
+  vpc_id        = aws_vpc.production_vpc.id
+  availability_zone = element(["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"], count.index)
+  cidr_block    = cidrsubnet(aws_vpc.production_vpc.cidr_block, 4, count.index)
+}
+
+# Define a Multi-AZ RDS instance in the production environment
+
+resource "aws_db_instance" "production_rds" {
+  allocated_storage    = 20
+  storage_type         = "gp2"
+  engine               = "mysql"
+  engine_version       = "5.7"
+  instance_class       = "db.t2.micro"
+  name                 = "mydb"
+  username             = "admin"
+  password             = "your_password"
+  multi_az             = true  # Multi-AZ deployment
+
+  # Specify the subnets in different AZs for Multi-AZ
+
+  subnet_group_name = "mydb-subnet-group"
+  vpc_security_group_ids = [aws_security_group.production_rds.id]
+}
+
+# Define an AWS Security Group for the RDS instance
+
+resource "aws_security_group" "production_rds" {
+  name_prefix = "rds-sg-"
+  vpc_id      = aws_vpc.production_vpc.id
+}
+
+# Create an AWS Lambda function for transferring RDS snapshots to another region
+resource
+"aws_lambda_function" "snapshot_transfer" {
+  function_name = "snapshot-transfer-lambda"
+  handler      = "index.handler"
+  runtime      = "nodejs14.x"
+
+  # Define the Lambda function code and role here
+ # Define an IAM role for the Lambda function
+resource "aws_iam_role" "lambda_role" {
+  name = "lambda-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# Attach policies to the Lambda execution role
+# For example, you may need to attach policies for AWS CloudWatch Logs and RDS snapshot copy
+resource "aws_iam_policy_attachment" "lambda_policy" {
+  name = "lambda-policy"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"  # Basic Lambda execution policy
+  roles = [aws_iam_role.lambda_role.name]
+}
+
+# Define the Lambda function
+
+resource "aws_lambda_function" "snapshot_transfer" {
+  function_name = "snapshot-transfer-lambda"
+  handler = "index.handler"
+  runtime = "nodejs14.x"
+  s3_bucket = "S3Lrecover"  
+  s3_key = "lambda-package.zip"  e
+  source_code_hash = filebase64sha256("path/to/lambda-package.zip")
+  role = aws_iam_role.lambda_role.arn
+
+  environment {
+    variables = {
+      source_region      = "eu-west-1"
+      destination_region = "eu-west-2"  
+    }
+  }
+}
+
+# Define the Lambda deployment package data source
+data "archive_file" "lambda_deployment" {
+  type = "zip"
+  source_dir = "path/to/lambda-code"
+  output_path = "path/to/lambda-package.zip"
+}
+
+  # Add a trigger for daily execution, e.g., using a CloudWatch Events Rule
+  # Define a CloudWatch Events Rule for daily execution
+resource 
+
+"aws_cloudwatch_event_rule" "daily_execution" {
+  name = "daily-execution-rule"
+  description = "Trigger Lambda function daily"
+
+  schedule_expression = "cron(0 0 * * ? *)"  # Daily at midnight UTC
+
+  # Optionally, you can specify the target for the event (i.e., the Lambda function)
+  target {
+
+    id = aws_lambda_function.snapshot_transfer.name
+    arn = aws_lambda_function.snapshot_transfer.arn
+  }
+}
+
+# Create a CloudWatch Events Rule target permission
+resource 
+
+"aws_cloudwatch_event_target" "lambda_permission" {
+  rule = aws_cloudwatch_event_rule.daily_execution.name
+  target_id = aws_lambda_function.snapshot_transfer.name
+  arn = aws_lambda_function.snapshot_transfer.arn
+
+  # Specify the role that allows the event rule to invoke the Lambda function
+
+  role_arn = aws_iam_role.lambda_role.arn
+}
+
+# Ensure that the CloudWatch Events Rule can trigger the Lambda function
+resource
+
+"aws_lambda_permission" "allow_cloudwatch" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.snapshot_transfer.name
+  principal     = "events.amazonaws.com"
+
+  source_arn = aws_cloudwatch_event_rule.daily_execution.arn
+}
+
+  # Define environment variables for specifying source and destination regions
+  environment {
+    variables = {
+      source_region      = "eu-west-1"
+      destination_region = "eu-west-2"  # The region to transfer snapshots to
+    }
+  }
+}
