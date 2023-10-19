@@ -1,0 +1,54 @@
+AWS Restore and Recovery Architecture Layout:
+
+                                  +-----------------+
+                                  |   Application  |
+                                  |    Instances   |
+                                  +--------|--------+
+                                           |
+                               +-----------|-----------+
+                               |                       |
+                               |                       |
+                         +-----v------+          +-----v------+
+                         |  ECR      |          |   ECR     |
+                         | Registry  |          | Registry  |
+                         |           |          |           |
+                         +-----|------+          +-----|------+
+                               |                       |
+                               |                       |
+                               |                       |
+                    +----------|-----------+           |
+                    |          |           |           |
+                    |          |           |           |
+                    |   +------v------+    |           |
+                    |   |   CICD     |    |           |
+                    |   |  Pipelines |    |           |
+                    |   |  & Terraform|    |           |
+                    |   +------------+    |           |
+                    |                    |           |
+                    +--------------------+           |
+                                                     |
+                                  +-----------------v------------------+
+                                  |              AWS Services            |
+                                  |   - Managed Backups                 |
+                                  |   - EBS Snapshots                   |
+                                  |   - AWS Parameter Store for secrets |
+                                  |   - CloudFormation for stack setup  |
+                                  |   - CloudWatch for monitoring       |
+                                  |   - RDS for database resilience     |
+                                  |   - ECR for container resilience    |
+                                  +-------------------------------------+
+
+- The architecture includes multiple components that ensure the recovery and resilience of the application, managed by AWS services.
+
+- Application instances run within the AWS environment.
+
+- Amazon Elastic Container Registry (ECR) stores versioned containers, providing resilience against critical errors. If a deployment of the latest version of the application fails, a previous working version is automatically used.
+
+- Restore and recovery operations for containers are managed by Terraform and CI/CD pipelines on the code repository side.
+
+- AWS services such as Managed Backups, EBS Snapshots, AWS Parameter Store for secret management, CloudFormation for stack setup, CloudWatch for monitoring, RDS for database resilience, and ECR for container resilience are part of the architecture to support recovery procedures.
+
+- The Recovery Time Objective (RTO) and Recovery Point Objective (RPO) details are sensitive and governed by NDA, and not explicitly described here.
+
+- The overall architecture ensures the availability and recoverability of the application in case of errors or disruptions.
+
