@@ -1,3 +1,11 @@
+Constant cost optimization strategy is applied. Every workload needs to answer specific questions: 
+1)	Is this workload needed? 
+2)	Is the workload performing well under current conditions? 
+3)	Can we change configuration of it to save on costs?
+Those questions are repeated periodically through weeks, months, years of application usage.
+Only existing pricing is below, before estimations went under NDA. Pricing model provided – Pay as you go and approach of prototyping before scaling. 
+https://calculator.aws/#/estimate?id=d8d4c34b9d6ff9699598074e3eeb1a91e7db3cf3
+
 
 
 Establish a well-defined process for estimating the initial costs of an AWS solution. This process should take into account various factors, such as infrastructure, data transfer, and services used.
