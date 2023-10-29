@@ -1,15 +1,15 @@
 # Set up AWS provider configuration
 provider "aws" {
-  region = "us-east-1" # Change this to your desired region
+  region = "eu-west-1" 
 }
 
-# Define an S3 bucket for storing Terraform state files
+
 resource "aws_s3_bucket" "terraform_state" {
   bucket = "your-terraform-state-bucket"
   acl    = "private"
 }
 
-# Create a DynamoDB table for state locking
+
 resource "aws_dynamodb_table" "terraform_lock" {
   name           = "terraform_lock"
   read_capacity  = 5
@@ -22,7 +22,7 @@ resource "aws_dynamodb_table" "terraform_lock" {
   }
 }
 
-# Define a VPC and subnets for your EKS cluster
+
 resource "aws_vpc" "eks_vpc" {
   cidr_block = "10.0.0.0/16"
   enable_dns_support = true
@@ -58,9 +58,6 @@ module "eks" {
   subnets = aws_subnet.eks_subnet[*].id
   vpc_id = aws_vpc.eks_vpc.id
   write_kubeconfig = true
-
-  # Add node group and IAM role configuration here
-  # ...
 
   tags = {
     Terraform   = "true"
