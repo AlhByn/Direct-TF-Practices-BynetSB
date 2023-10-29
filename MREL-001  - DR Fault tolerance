@@ -13,7 +13,7 @@ resource "aws_vpc" "dev_test_vpc" {
 resource "aws_subnet" "dev_test_subnets" {
   count         = 4  # For 2 AZs in development and 2 in test
   vpc_id        = aws_vpc.dev_test_vpc.id
-  availability_zone = element(["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"], count.index)
+  availability_zone = element(["eu-west-1a", "eu-west-1b", "eu-west-1c", "eu-west-1d"], count.index)
   cidr_block    = cidrsubnet(aws_vpc.dev_test_vpc.cidr_block, 4, count.index)
 }
 
@@ -42,7 +42,7 @@ resource "aws_db_instance" "production_rds" {
   instance_class       = "db.t2.micro"
   name                 = "mydb"
   username             = "admin"
-  password             = "your_password"
+  password             = "*******"
   multi_az             = true  # Multi-AZ deployment
 
   # Specify the subnets in different AZs for Multi-AZ
@@ -58,8 +58,7 @@ resource "aws_security_group" "production_rds" {
   vpc_id      = aws_vpc.production_vpc.id
 }
 
-# Create an AWS Lambda function for transferring RDS snapshots to another region
-resource
+
 "aws_lambda_function" "snapshot_transfer" {
   function_name = "snapshot-transfer-lambda"
   handler      = "index.handler"
@@ -67,6 +66,8 @@ resource
 
   # Define the Lambda function code and role here
  # Define an IAM role for the Lambda function
+
+
 resource "aws_iam_role" "lambda_role" {
   name = "lambda-execution-role"
 
