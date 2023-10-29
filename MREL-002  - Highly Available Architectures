@@ -1,6 +1,6 @@
 # Define the AWS provider configuration
 provider "aws" {
-  region = "us-east-1"  # Your preferred AWS region
+  region = "eu-west-1"  
 }
 
 # Create an Amazon Route 53 hosted zone for your domain
